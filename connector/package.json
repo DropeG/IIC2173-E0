@@ -1,0 +1,14 @@
+{
+  "name": "energyshark-connector",
+  "version": "1.0.0",
+  "description": "Connector AMQP service for IIC2173 EnergyShark project",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.4",
+    "dotenv": "^16.4.5"
+  }
+}

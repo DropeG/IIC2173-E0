@@ -1,0 +1,102 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: energyshark-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-energyshark}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-energyshark}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - energyshark_net
+
+  master1:
+    build:
+      context: ./master
+      dockerfile: Dockerfile
+    container_name: energyshark-master1
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME:-energyshark}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - energyshark_net
+
+  master2:
+    build:
+      context: ./master
+      dockerfile: Dockerfile
+    container_name: energyshark-master2
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME:-energyshark}
+    ports:
+      - "3001:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - energyshark_net
+
+  connector:
+    build:
+      context: ./connector
+      dockerfile: Dockerfile
+    container_name: energyshark-connector
+    restart: unless-stopped
+    environment:
+      MASTER_URL: http://master1:3000/events
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqps://user:pass@broker.iic2173.org:5671/energy}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE:-observer.19.q}
+    depends_on:
+      master1:
+        condition: service_healthy
+      master2:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/heartbeat || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - energyshark_net
+
+volumes:
+  postgres_data:
+
+networks:
+  energyshark_net:
+    driver: bridge
