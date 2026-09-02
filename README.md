@@ -50,4 +50,11 @@ Decidí implementar ambos grupos variables para asegurar puntaje.
 * En la configuración de Nginx agregué un bloque `upstream` que reparte el tráfico (Load Balancing) entre ambas instancias para no saturar una sola.
 
 ---
-**Nota sobre uso de IA:** Me apoyé en herramientas de IA como asistente de programación para consultar dudas sobre comandos de bash de Linux, depurar errores de red en Docker y generar la estructura base de Nginx.
+## Documentación de Uso de IA
+
+Durante el desarrollo de esta entrega, utilicé asistencia de Inteligencia Artificial (agentes LLM) como herramienta de apoyo (Pair Programming) en los siguientes aspectos:
+
+1. **Infraestructura como Código:** Generación de scripts bash para automatizar la configuración e instalación de paquetes (Docker, Nginx, Certbot) en el servidor Ubuntu.
+2. **Depuración de Redes:** Consultas para resolver conflictos de red interna de Docker (específicamente errores de puertos al escalar el contenedor master y fallos de resolución DNS del conector).
+3. **Configuración de Nginx:** Estructuración del bloque `upstream` de balanceo de carga y configuración de los headers del proxy inverso.
+4. **Metodología:** Ningún código fue autogenerado a ciegas. Toda sugerencia de la IA fue auditada y probada localmente primero, y luego desplegada paso a paso en el servidor EC2.
